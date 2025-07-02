@@ -39,7 +39,7 @@ pipeline {
                     dockerPush("kanjamn/demo-app:${IMAGE_NAME}")
                 }
             }
-        } 
+        }
         stage("deploy") {
             steps {
                 script {
@@ -55,15 +55,12 @@ pipeline {
                         sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
                     }
                 }
-            }               
+            }
         }
         stage("commit version update") {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'github-con-token', passwordVariable: 'PASS', usernameVariable: 'USER')]){
-                        sh 'git config user.name "jenkins"'
-                        sh 'git config user.email "jenkins@test.com"'
-
+                    withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]){
                         sh 'git status'
                         sh 'git branch'
                         sh 'git config --list'

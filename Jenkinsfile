@@ -10,7 +10,7 @@ library identifier: 'jenkins-shared-lib-jmaven-app-for-aws@main', retriever: mod
 pipeline {
     agent any
     tools {
-        maven 'Maven'
+        maven 'maven-3.9'
     }
     environment {
         IMAGE_NAME = 'kanjamn/demo-app:java-maven-1.0'

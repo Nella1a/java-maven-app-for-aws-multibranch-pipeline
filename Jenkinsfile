@@ -17,7 +17,9 @@ pipeline {
             steps {
                 script {
                       echo 'increment app version ...'
-                      sh 'mvn build-helper:parse-version versions:set -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} versions:commit'
+                      sh 'mvn build-helper:parse-version versions:set \
+                      -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
+                      versions:commit'
                       def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
                       def version = matcher[0][1]
                       env.IMAGE_NAME = "$version-$BUILD_NUMBER"
@@ -54,6 +56,25 @@ pipeline {
                     }
                 }
             }               
+        }
+        stage("commit version update") {
+            steps {
+                script {
+                    withCredentials([usernamePassword:(credentialsId: 'github-acces-token', passwordVariable: 'PASS', usernameVariable: 'USER')]){
+                        sh 'git config user.name "jenkins"'
+                        sh 'git config user.email jenkins@test.com'
+
+                        sh 'git status'
+                        sh 'git branch'
+                        sh 'git config --list'
+
+                        sh 'git remote set-url origin https://$USER:$PASS@github.com/Nella1a/java-maven-app-for-aws-multibranch-pipeline.git'
+                        sh 'git add .'
+                        sh 'git commit -m "ci: version dump"'
+                        sh 'git push origin HEAD:jenkins-jobs'
+                    }
+                }
+            }
         }
     }
 }

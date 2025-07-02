@@ -60,7 +60,7 @@ pipeline {
         stage("commit version update") {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'github-connection', passwordVariable: 'PASS', usernameVariable: 'USER')]){
+                    withCredentials([usernamePassword(credentialsID: 'github-con-token', passwordVariable: 'PASS', usernameVariable: 'USER')]){
                         sh 'git config user.name "jenkins"'
                         sh 'git config user.email "jenkins@test.com"'
 
@@ -68,7 +68,7 @@ pipeline {
                         sh 'git branch'
                         sh 'git config --list'
 
-                        sh 'git remote set-url origin https://$USER:$PASS@github.com/Nella1a/java-maven-app-for-aws-multibranch-pipeline.git'
+                        sh "git remote set-url origin https://${USER}:${PASS}@github.com/Nella1a/java-maven-app-for-aws-multibranch-pipeline.git"
                         sh 'git add .'
                         sh 'git commit -m "ci: version dump"'
                         sh 'git push origin HEAD:jenkins-jobs'

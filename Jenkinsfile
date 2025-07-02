@@ -12,10 +12,18 @@ pipeline {
     tools {
         maven 'maven-3.9'
     }
-    environment {
-        IMAGE_NAME = 'kanjamn/demo-app:java-maven-2.0'
-    }
     stages {
+        stage('increment version') {
+            steps {
+                echo 'increment app version ...'
+                sh 'mvn build-helper:parse-version version-set \
+                    -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
+                     versions:commit'
+                def matcher = readFile('pom.xml') = ~'<version>(.+)</version>'
+                def version = matcher[0][1]
+                env.IMAGE_NAME = "$version-$BUILD_NUMBER"
+            }
+        }
         stage('build app') {
             steps {
                 buildJar()
@@ -24,9 +32,9 @@ pipeline {
         stage('build image') {
             steps {
                 script {
-                    buildImage(env.IMAGE_NAME)
+                    buildImage("kanjamn/demo-app:${IMAGE_NAME}")
                     dockerLogin()
-                    dockerPush(env.IMAGE_NAME)
+                    dockerPush("kanjamn/demo-app:${IMAGE_NAME}")
                 }
             }
         } 
@@ -34,13 +42,14 @@ pipeline {
             steps {
                 script {
                     echo 'deploying docker image to EC2...'
-                    echo 'THIS IS THE IMAGE NAME: $IMAGE_NAME'
-                    def shellCmd = "bash /home/ec2-user/server-cmds.sh ${IMAGE_NAME}"
+                    echo "THIS IS THE IMAGE NAME: kanjamn/demo-app:${IMAGE_NAME}"
+                    def shellCmd = "./server-cmds.sh kanjamn/demo-app:${IMAGE_NAME}"
                     def ec2Instance = "ec2-user@3.70.221.96"
 
                     sshagent(['ec2-server-key']) {
-                        sh "scp server-cmds.sh ${ec2Instance}:/home/ec2-user"
-                        sh "scp docker-compose.yaml ${ec2Instance}:/home/ec2-user"
+                        sh "chmod +x server-cmds.sh"
+                        sh "scp -o StrictHostKeyChecking=no server-cmds.sh ${ec2Instance}:/home/ec2-user"
+                        sh "scp -o StrictHostKeyChecking=no  docker-compose.yaml ${ec2Instance}:/home/ec2-user"
                         sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
                     }
                 }

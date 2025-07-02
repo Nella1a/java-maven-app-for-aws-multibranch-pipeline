@@ -1,6 +1,6 @@
 services:
   java-maven-app:
-    image: 'kanjamn/demo-app:java-maven-1.0'
+    image: ${IMAGE}
     ports:
       - 8080:8080
 

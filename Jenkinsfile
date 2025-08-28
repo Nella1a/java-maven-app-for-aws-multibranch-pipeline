@@ -25,7 +25,7 @@ pipeline {
                     echo "Deploying the application..."
                     def dockerCmd = "docker run -d -p 3080:3080 kanjamn/demo-app:mynodeapp-1.0 "
                     sshagent(['ec2-server-key']) {
-                        sh "ssh -o StrictHostKeyChecking=no ubuntu@3.75.238.144 ${dockerCmd}"
+                        sh "ssh -o StrictHostKeyChecking=no ec2-user@18.184.169.243 ${dockerCmd}"
                     }
                 }
             }
